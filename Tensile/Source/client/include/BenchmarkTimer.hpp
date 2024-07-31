@@ -47,7 +47,9 @@ namespace Tensile
         public:
             using clock = std::chrono::steady_clock;
 
-            BenchmarkTimer(po::variables_map const& args, Hardware const& hardware);
+            BenchmarkTimer(po::variables_map const& args,
+                           Hardware const&          hardware,
+                           hipStream_t              stream);
 
             virtual bool needMoreBenchmarkRuns() const override;
             virtual void preBenchmarkRun() override;
@@ -103,6 +105,8 @@ namespace Tensile
             Hardware const&     m_hardware;
             ContractionProblem  m_problem;
             ContractionSolution m_solution;
+
+            hipStream_t m_stream;
 
             int m_numEnqueuesInSolution = 0;
             int m_numSyncsInBenchmark   = 0;

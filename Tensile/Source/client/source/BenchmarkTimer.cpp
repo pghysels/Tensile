@@ -41,7 +41,9 @@ namespace Tensile
     {
         static_assert(BenchmarkTimer::clock::is_steady, "Clock must be steady.");
 
-        BenchmarkTimer::BenchmarkTimer(po::variables_map const& args, Hardware const& hardware)
+        BenchmarkTimer::BenchmarkTimer(po::variables_map const& args,
+                                       Hardware const&          hardware,
+                                       hipStream_t              stream)
             : m_numWarmups(args["num-warmups"].as<int>())
             , m_syncAfterWarmups(args["sync-after-warmups"].as<bool>())
             , m_numBenchmarks(args["num-benchmarks"].as<int>())
@@ -54,6 +56,7 @@ namespace Tensile
             , m_sleepPercent(args["sleep-percent"].as<int>())
             , m_timeInSolution(0)
             , m_totalGPUTime(0)
+            , m_stream(stream)
         {
         }
 
@@ -183,7 +186,7 @@ namespace Tensile
             if(!m_useGPUTimer)
             {
                 // Synchronize before timer so warmup runs are not included in benchmark time
-                HIP_CHECK_EXC(hipDeviceSynchronize());
+                HIP_CHECK_EXC(hipStreamSynchronize(m_stream));
                 m_startTime = clock::now();
             }
         }
@@ -193,7 +196,7 @@ namespace Tensile
         {
             if(!m_useGPUTimer)
             {
-                HIP_CHECK_EXC(hipDeviceSynchronize());
+                HIP_CHECK_EXC(hipStreamSynchronize(m_stream));
                 m_endTime = clock::now();
             }
         }
